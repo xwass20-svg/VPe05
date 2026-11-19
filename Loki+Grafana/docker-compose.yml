@@ -1,0 +1,31 @@
+# Compose для запуска двух сервисов логирования: Loki и Grafana.
+# Сервисы в одной сети — Grafana обращается к Loki по имени: http://loki:3100
+services:
+  loki:
+    image: grafana/loki:2.9.4
+    container_name: loki
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+    restart: unless-stopped
+    networks:
+      - logging
+
+  grafana:
+    image: grafana/grafana:10.4.2
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      # стандартные учётные данные Grafana
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    depends_on:
+      - loki
+    restart: unless-stopped
+    networks:
+      - logging
+
+networks:
+  logging:
+    driver: bridge
